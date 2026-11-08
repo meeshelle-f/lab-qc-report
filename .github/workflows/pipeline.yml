@@ -1,0 +1,38 @@
+# Tutorial stage 1: check the data and test the code on every change.
+# Copy it into place with:   cp tutorial/pipeline-1-test.yml .github/workflows/pipeline.yml
+name: Pipeline
+
+# WHEN it runs: a push to main, every pull request, and the "Run workflow" button.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# The token GitHub gives these jobs can only read the code.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # WHERE it runs: a fresh Linux computer that GitHub lends you.
+    runs-on: ubuntu-latest
+    # WHAT it does: the same commands you ran by hand in Part B.
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install the tools
+        run: pip install -r requirements.txt
+
+      - name: Check the data
+        run: python src/qc.py
+
+      - name: Run the unit tests
+        run: pytest -v
