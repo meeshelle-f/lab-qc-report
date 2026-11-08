@@ -1,5 +1,5 @@
-# Tutorial stage 1: check the data and test the code on every change.
-# Copy it into place with:   cp tutorial/pipeline-1-test.yml .github/workflows/pipeline.yml
+# Tutorial stage 2: test, then build the report website.
+# Copy it into place with:   cp tutorial/pipeline-2-build.yml .github/workflows/pipeline.yml
 name: Pipeline
 
 # WHEN it runs: a push to main, every pull request, and the "Run workflow" button.
@@ -36,3 +36,29 @@ jobs:
 
       - name: Run the unit tests
         run: pytest -v
+
+  build:
+    # Starts only after the test job has passed.
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install the tools
+        run: pip install -r requirements.txt
+
+      - name: Build the report
+        run: python src/report.py
+
+      - name: Keep the built report so you can download it
+        uses: actions/upload-artifact@v7
+        with:
+          name: report
+          path: dist
