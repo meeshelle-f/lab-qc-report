@@ -1,0 +1,5 @@
+# The built website. The pipeline builds it fresh every time, so it is never committed.
+dist/
+# Python's own cache files and your local virtual environment.
+__pycache__/
+.venv/
