@@ -1,5 +1,5 @@
-# Tutorial stage 2: test, then build the report website.
-# Copy it into place with:   cp tutorial/pipeline-2-build.yml .github/workflows/pipeline.yml
+# Tutorial stage 3: test, build, then publish the report to GitHub Pages.
+# Copy it into place with:   cp tutorial/pipeline-3-deploy.yml .github/workflows/pipeline.yml
 name: Pipeline
 
 # WHEN it runs: a push to main, every pull request, and the "Run workflow" button.
@@ -57,8 +57,29 @@ jobs:
       - name: Build the report
         run: python src/report.py
 
-      - name: Keep the built report so you can download it
-        uses: actions/upload-artifact@v7
+      - name: Package the report for GitHub Pages
+        uses: actions/upload-pages-artifact@v5
         with:
-          name: report
           path: dist
+
+  deploy:
+    # Starts only after the build job has passed, and only for main:
+    # a pull request is tested and built, but never published.
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # This job, and only this job, may publish to GitHub Pages.
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # One deployment at a time.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Publish the report
+        id: deployment
+        uses: actions/deploy-pages@v5
